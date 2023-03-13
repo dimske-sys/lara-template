@@ -1,0 +1,4 @@
+ARG PHP_EXTENSIONS="mysqli pgsql pdo_mysql pdo_pgsql"
+
+FROM thecodingmachine/php:8.2-v4-fpm-node18
+WORKDIR /workspace

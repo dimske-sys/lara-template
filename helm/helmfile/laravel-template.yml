@@ -1,0 +1,22 @@
+---
+repositories:
+  - name: example-lab
+    url: s3://example-helm-chart/lab
+
+templates:
+  default: &default
+    namespace: devops-tools
+    version: "1.4.0-rc"
+
+releases:
+  - name: laravel
+    chart: example-lab/api
+    values:
+      - ./laravel-values.yml
+    <<: *default
+
+  - name: mariadb
+    chart: example-lab/stateful
+    values:
+      - ./mariadb-values.yml
+    <<: *default

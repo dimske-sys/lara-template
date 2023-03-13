@@ -1,0 +1,73 @@
+name: Laravel App
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build the docker images
+        run: make build-test
+
+      - name: Start the docker images
+        run: make start-test
+
+      - name: Check running containers
+        run: docker ps -a
+
+      - name: Wait for database connection
+        run: make wait-for-db
+
+      - name: Run migrations
+        run: make drop-migrate
+
+      - name: Run seeds
+        run: make seed
+
+      - name: Run test suite
+        run: make phpunit
+
+      - name: Run PHP codeSniffer
+        run: make phpcs
+
+      - name: Run PHP copy/paste detector
+        run: make phpcpd
+
+      - name: Run PHP mess detector
+        run: make phpmd
+
+      - name: Run PHPStan static analysis tool
+        run: make phpstan
+
+      - name: Stop the docker images
+        run: make stop-test
+      
+      - name: Configure Docker to use GitHub Container Registry
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GIT_TOKEN }}
+
+      - name: Build and push Docker image to GitHub Container Registry
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/laravel-in-kubernetes:latest
